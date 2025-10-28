@@ -1,4 +1,4 @@
-import { getImagesByQuery } from './js/pixabay-api.js';
+ import { getImagesByQuery } from './js/pixabay-api.js';
 import {
   createGallery,
   clearGallery,
@@ -14,6 +14,7 @@ const form = document.querySelector('.form');
 const input = document.querySelector('input[name="search-text"]');
 const loadMoreBtn = document.querySelector('.load-more');
 
+const PER_PAGE = 15;
 let query = '';
 let page = 1;
 let totalHits = 0;
@@ -21,7 +22,15 @@ let totalHits = 0;
 form.addEventListener('submit', async e => {
   e.preventDefault();
   query = input.value.trim();
-  if (!query) return;
+
+  if (!query) {
+    iziToast.warning({
+      message: 'Please enter a search term.',
+      position: 'topRight',
+    });
+    hideLoader();
+    return;
+  }
 
   page = 1;
   clearGallery();
@@ -38,7 +47,9 @@ form.addEventListener('submit', async e => {
     }
 
     createGallery(data.hits);
-    if (totalHits > page * 15) showLoadMoreButton();
+    if (totalHits > page * PER_PAGE) {
+      showLoadMoreButton();
+    }
   } catch {
     iziToast.error({ message: 'Error fetching images.', position: 'topRight' });
   } finally {
@@ -48,15 +59,31 @@ form.addEventListener('submit', async e => {
 
 loadMoreBtn.addEventListener('click', async () => {
   page += 1;
+  hideLoadMoreButton(); // приховати одразу, щоб уникнути подвійних кліків
   showLoader();
 
   try {
     const data = await getImagesByQuery(query, page);
+
+    if (data.hits.length === 0) {
+      iziToast.info({
+        message: "We're sorry, but you've reached the end of search results.",
+        position: 'topRight',
+      });
+      hideLoadMoreButton();
+      return;
+    }
+
     createGallery(data.hits);
 
-    if (page * 15 >= totalHits) {
+    if (page * PER_PAGE >= totalHits) {
       hideLoadMoreButton();
-      iziToast.info({ message: "We're sorry, but you've reached the end of search results.", position: 'topRight' });
+      iziToast.info({
+        message: "We're sorry, but you've reached the end of search results.",
+        position: 'topRight',
+      });
+    } else {
+      showLoadMoreButton();
     }
 
     scrollByCardHeight();

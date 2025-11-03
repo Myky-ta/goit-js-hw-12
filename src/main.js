@@ -1,11 +1,13 @@
- import { getImagesByQuery } from './js/pixabay-api.js';
+import { getImagesByQuery } from './js/pixabay-api.js';
 import {
   createGallery,
   clearGallery,
   showLoader,
   hideLoader,
   showLoadMoreButton,
-  hideLoadMoreButton
+  hideLoadMoreButton,
+  showLoadingText,
+  hideLoadingText
 } from './js/render-functions.js';
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
@@ -29,6 +31,7 @@ form.addEventListener('submit', async e => {
       position: 'topRight',
     });
     hideLoader();
+    hideLoadingText();
     return;
   }
 
@@ -36,6 +39,7 @@ form.addEventListener('submit', async e => {
   clearGallery();
   hideLoadMoreButton();
   showLoader();
+  showLoadingText();
 
   try {
     const data = await getImagesByQuery(query, page);
@@ -47,20 +51,23 @@ form.addEventListener('submit', async e => {
     }
 
     createGallery(data.hits);
-    if (totalHits > page * PER_PAGE) {
+
+    if (totalHits > PER_PAGE) {
       showLoadMoreButton();
     }
   } catch {
     iziToast.error({ message: 'Error fetching images.', position: 'topRight' });
   } finally {
     hideLoader();
+    hideLoadingText();
   }
 });
 
 loadMoreBtn.addEventListener('click', async () => {
   page += 1;
-  hideLoadMoreButton(); // приховати одразу, щоб уникнути подвійних кліків
+  hideLoadMoreButton();
   showLoader();
+  showLoadingText();
 
   try {
     const data = await getImagesByQuery(query, page);
@@ -91,6 +98,7 @@ loadMoreBtn.addEventListener('click', async () => {
     iziToast.error({ message: 'Error loading more images.', position: 'topRight' });
   } finally {
     hideLoader();
+    hideLoadingText();
   }
 });
 

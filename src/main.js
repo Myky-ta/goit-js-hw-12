@@ -52,8 +52,13 @@ form.addEventListener('submit', async e => {
 
     createGallery(data.hits);
 
-    if (totalHits > PER_PAGE) {
+    if (totalHits > page * PER_PAGE) {
       showLoadMoreButton();
+    } else {
+      iziToast.info({
+        message: "We're sorry, but you've reached the end of search results.",
+        position: 'topRight',
+      });
     }
   } catch {
     iziToast.error({ message: 'Error fetching images.', position: 'topRight' });
